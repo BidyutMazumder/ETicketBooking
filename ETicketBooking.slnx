@@ -1,0 +1,8 @@
+<Solution>
+  <Folder Name="/Src/" />
+  <Folder Name="/Src/BuildingBlocks/">
+    <Project Path="Shared.Kernel/Shared.Kernel.csproj" />
+  </Folder>
+  <Folder Name="/Src/Services/" />
+  <Folder Name="/Test/" />
+</Solution>
