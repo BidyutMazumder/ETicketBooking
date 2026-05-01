@@ -1,6 +1,4 @@
-﻿using Shared.Kernel.Domain.Exceptions;
-
-namespace Shared.Kernel.Domain.Abstractions;
+﻿namespace Shared.Kernel.Domain.Abstractions;
 
 public abstract class SoftDeletableEntity : AuditableEntity
 {

@@ -1,0 +1,11 @@
+global using Microsoft.AspNetCore.Mvc;
+global using Identity.Application.DTOs;
+global using Identity.Application.Commands;
+global using Identity.Application.Queries;
+global using Identity.Application.Interfaces;
+global using Identity.Application.Mappings;
+global using Identity.Infrastructure.Persistence;
+global using Identity.Infrastructure.Repositories;
+global using Identity.Infrastructure.Services;
+global using MediatR;
+global using Shared.Kernel.Domain.Abstractions;

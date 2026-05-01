@@ -4,5 +4,11 @@
     <Project Path="Shared.Kernel/Shared.Kernel.csproj" />
   </Folder>
   <Folder Name="/Src/Services/" />
+  <Folder Name="/Src/Services/Identity/">
+    <Project Path="Identity.API/Identity.API.csproj" Id="35fb355f-cd8d-4067-b1a8-cfd94d19f71f" />
+    <Project Path="Identity.Application/Identity.Application.csproj" Id="67e9c63f-130f-46c8-bdff-c1db566e3555" />
+    <Project Path="Identity.Domain/Identity.Domain.csproj" Id="a225452a-4d76-41e9-8151-71e5e6783473" />
+    <Project Path="Identity.Infrastructure/Identity.Infrastructure.csproj" Id="d712b5db-83c0-4d92-9a31-f687cac85cd1" />
+  </Folder>
   <Folder Name="/Test/" />
 </Solution>

@@ -1,6 +1,4 @@
-﻿using Shared.Kernel.Domain.Abstractions;
-using Shared.Kernel.Domain.Exceptions;
-
+﻿namespace Shared.Kernel.Domain.Abstractions;
 public abstract class Entity
 {
     private readonly List<IDomainEvent> _domainEvents = new();
@@ -13,7 +11,7 @@ public abstract class Entity
         Id = id;
     }
 
-    protected Entity() { } // EF Core
+    protected Entity() { }
 
     public Guid Id { get; protected set; }
 

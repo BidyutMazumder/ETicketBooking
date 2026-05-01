@@ -1,0 +1,11 @@
+﻿global using Identity.Domain.Users;
+global using Identity.Domain.Users.ValueObject;
+global using Identity.Application.DTOs;
+global using Identity.Application.Commands;
+global using Identity.Application.Queries;
+global using Identity.Application.Interfaces;
+global using MediatR;
+global using AutoMapper;
+global using FluentValidation;
+global using Shared.Kernel.Domain.Abstractions;
+global using Shared.Kernel.Domain.Exceptions;

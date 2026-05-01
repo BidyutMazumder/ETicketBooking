@@ -1,0 +1,1 @@
+﻿global using Shared.Kernel.Domain.Abstractions;
