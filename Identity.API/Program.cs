@@ -1,40 +1,30 @@
-using Microsoft.EntityFrameworkCore;
+using Identity.API.Middleware;
+using Identity.API.ServiceRegistration;
+using Identity.Application.ServiceRegistration;
+using Identity.Infrastructure.Infrastructure.ServiceRegistration;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Add services to the container.
+// Add services to the container
 builder.Services.AddControllers();
-builder.Services.AddOpenApi();
+builder.Services.AddEndpointsApiExplorer();
+builder.Services.AddSwaggerGen();
 
-// Database
-builder.Services.AddDbContext<IdentityDbContext>(options =>
-    options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
-
-// MediatR
-builder.Services.AddMediatR(cfg =>
-{
-    cfg.RegisterServicesFromAssembly(typeof(Identity.Application.Commands.CreateUserCommand).Assembly);
-});
-
-// AutoMapper
-builder.Services.AddAutoMapper(typeof(UserMappingProfile));
-
-// Repositories
-builder.Services.AddScoped<IUserRepository, UserRepository>();
-
-// Password Hasher
-builder.Services.AddScoped<IPasswordHasher, PasswordHasher>();
+// Configure services by layer
+ServiceRegistration.ConfigureServiceRegistration(builder.Services, builder.Configuration);
+builder.Services.AddApplicationServices();
+builder.Services.AddInfrastructureServices(builder.Configuration);
 
 var app = builder.Build();
 
-// Configure the HTTP request pipeline.
-if(app.Environment.IsDevelopment())
+// Configure the HTTP request pipeline
+if (app.Environment.IsDevelopment())
 {
-    app.MapOpenApi();
     app.UseSwagger();
     app.UseSwaggerUI();
 }
 
+app.UseMiddleware<GlobalExceptionMiddleware>();
 app.UseHttpsRedirection();
 app.UseAuthorization();
 app.MapControllers();

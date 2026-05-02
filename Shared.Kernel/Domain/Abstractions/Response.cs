@@ -39,8 +39,8 @@ public class Response<TValue> : Result
 
     public TValue? Data => _value;
 
-    public static Response<TValue> Success(TValue value) => new(value, true, Error.None);
-    public static Response<TValue> Failure(Error error) => new(default, false, error);
+    public new static Response<TValue> Success(TValue value) => new(value, true, Error.None);
+    public new static Response<TValue> Failure(Error error) => new(default, false, error);
     public static Response<TValue> Create(TValue? value) =>
         value is not null ? Success(value) : Failure(Error.NullValue);
 
