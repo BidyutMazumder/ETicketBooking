@@ -5,6 +5,8 @@ namespace Identity.Domain.Users;
 
 public sealed class User : SoftDeletableEntity
 {
+    private readonly List<RefreshToken> _refreshTokens = [];
+
     private User(
         Guid id,
         Email email,
@@ -25,6 +27,7 @@ public sealed class User : SoftDeletableEntity
     public FullName Name { get; private set; } = null!;
     public string PasswordHash { get; private set; } = string.Empty;
     public Role Role { get; private set; }
+    public IReadOnlyList<RefreshToken> RefreshTokens => _refreshTokens.AsReadOnly();
 
     public static User Create(Email email, FullName name, string passwordHash, Role role)
     {
@@ -50,5 +53,34 @@ public sealed class User : SoftDeletableEntity
             IsDeleted = true;
             DeletedAt = DateTime.UtcNow;
         }
+    }
+
+    public void UpdateRefreshToken(RefreshToken newRefreshToken)
+    {
+        // Revoke all existing active tokens
+        foreach (var token in _refreshTokens.Where(t => t.IsActive))
+        {
+            _refreshTokens.Remove(token);
+            _refreshTokens.Add(token.Revoke());
+        }
+
+        // Add new refresh token
+        _refreshTokens.Add(newRefreshToken);
+    }
+
+    public void RevokeAllRefreshTokens()
+    {
+        for (int i = 0; i < _refreshTokens.Count; i++)
+        {
+            if (_refreshTokens[i].IsActive)
+            {
+                _refreshTokens[i] = _refreshTokens[i].Revoke();
+            }
+        }
+    }
+
+    public RefreshToken? GetActiveRefreshToken(string token)
+    {
+        return _refreshTokens.FirstOrDefault(t => t.Token == token && t.IsActive);
     }
 }

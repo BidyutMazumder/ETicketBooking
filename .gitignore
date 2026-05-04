@@ -361,3 +361,5 @@ MigrationBackup/
 
 # Fody - auto-generated XML schema
 FodyWeavers.xsd
+# Markdown files can be ignored as they are often used for documentation and may not be relevant to the source code.
+*.md

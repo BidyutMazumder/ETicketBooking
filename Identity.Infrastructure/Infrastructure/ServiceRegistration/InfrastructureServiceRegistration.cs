@@ -1,10 +1,5 @@
-using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using Identity.Application.Common.Interfaces;
-using Identity.Infrastructure.Services;
-using Identity.Infrastructure.Persistence;
-using Identity.Infrastructure.Persistence.Repositories;
 
 namespace Identity.Infrastructure.Infrastructure.ServiceRegistration;
 
@@ -30,6 +25,7 @@ public static class InfrastructureServiceRegistration
 
         // Infrastructure Services
         services.AddScoped<IPasswordHasher, PasswordHasher>();
+        services.AddScoped<IJwtProvider, JwtProvider>();
 
         return services;
     }

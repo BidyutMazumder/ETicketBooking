@@ -54,7 +54,17 @@ public sealed class UserEntityConfiguration : IEntityTypeConfiguration<User>
                 .HasColumnName("LastName");
         });
 
-        
+        // Configure RefreshTokens collection as owned entities
+        builder.OwnsMany(e => e.RefreshTokens, rt =>
+        {
+            rt.ToTable("RefreshTokens");
+            rt.WithOwner().HasForeignKey("UserId");
+            rt.HasKey("Id");
+            rt.Property(t => t.Token).IsRequired().HasMaxLength(500);
+            rt.Property(t => t.ExpiresAt).IsRequired();
+            rt.Property(t => t.CreatedAt).IsRequired();
+            rt.Property(t => t.RevokedAt);
+        });
 
         // Ignore domain events
         builder.Ignore(e => e.DomainEvents);

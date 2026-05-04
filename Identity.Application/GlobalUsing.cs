@@ -7,3 +7,4 @@ global using Identity.Domain.Users.ValueObject;
 global using Mediator;
 global using Microsoft.Extensions.DependencyInjection;
 global using Shared.Kernel.Domain.Abstractions;
+global using System.Security.Claims;

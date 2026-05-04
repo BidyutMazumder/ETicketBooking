@@ -3,12 +3,12 @@ namespace Identity.Application.Features.Users.Commands.CreateUser;
 public sealed class CreateUserCommandHandler : IRequestHandler<CreateUserCommand, Response<UserDto>>
 {
     private readonly IUserRepository _userRepository;
-    private readonly IPasswordHasher _passwordHasher;
+    private readonly Shared.Kernel.Domain.Abstractions.IPasswordHasher _passwordHasher;
     private readonly IUserMapper _mapper;
 
     public CreateUserCommandHandler(
         IUserRepository userRepository,
-        IPasswordHasher passwordHasher,
+        Shared.Kernel.Domain.Abstractions.IPasswordHasher passwordHasher,
         IUserMapper mapper)
     {
         _userRepository = userRepository;

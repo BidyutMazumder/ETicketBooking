@@ -6,3 +6,4 @@ global using Identity.Infrastructure.Persistence.Repositories;
 global using Identity.Infrastructure.Services;
 global using Microsoft.EntityFrameworkCore;
 global using Shared.Kernel.Domain.Abstractions;
+global using System.Security.Claims;
