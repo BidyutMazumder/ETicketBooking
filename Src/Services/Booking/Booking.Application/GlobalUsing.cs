@@ -1,0 +1,13 @@
+global using FluentValidation;
+global using Booking.Application.Common.Interfaces;
+global using Booking.Application.Common.Mappings;
+global using Booking.Application.DTOs;
+global using Booking.Domain.Events;
+global using Booking.Domain.Events.Entities;
+global using Booking.Domain.Events.ValueObjects;
+global using Booking.Domain.Reservations;
+global using Booking.Domain.Reservations.ValueObjects;
+global using Mediator;
+global using Microsoft.Extensions.DependencyInjection;
+global using Microsoft.Extensions.Logging;
+global using Shared.Kernel.Domain.Abstractions;

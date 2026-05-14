@@ -1,0 +1,17 @@
+global using Booking.Application.Common.Interfaces;
+global using Booking.Domain.Events;
+global using Booking.Domain.Events.Entities;
+global using Booking.Domain.Reservations;
+global using Booking.Infrastructure.Persistence;
+global using Booking.Infrastructure.Persistence.Repositories;
+global using Booking.Infrastructure.Services;
+global using Microsoft.EntityFrameworkCore;
+global using Microsoft.EntityFrameworkCore.Metadata.Builders;
+global using Microsoft.Extensions.Configuration;
+global using Microsoft.Extensions.DependencyInjection;
+global using Microsoft.Extensions.Hosting;
+global using Microsoft.Extensions.Logging;
+global using Shared.Kernel.Domain.Exceptions;
+global using Microsoft.Extensions.DependencyInjection;
+global using Microsoft.Extensions.Hosting;
+global using Microsoft.Extensions.Logging;

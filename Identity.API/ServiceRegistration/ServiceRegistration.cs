@@ -26,10 +26,10 @@ public static class ServiceRegistration
             c.AddSecurityRequirement(document =>
                 new OpenApiSecurityRequirement
                 {
-            {
-                new OpenApiSecuritySchemeReference("Bearer", document),
-                new List<string>()
-            }
+                    {
+                        new OpenApiSecuritySchemeReference("Bearer", document),
+                        new List<string>()
+                    }
                 });
         });
 

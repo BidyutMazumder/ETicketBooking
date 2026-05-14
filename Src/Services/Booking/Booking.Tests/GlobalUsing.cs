@@ -1,0 +1,9 @@
+global using Xunit;
+global using FluentAssertions;
+global using Moq;
+global using Booking.Domain.Events;
+global using Booking.Domain.Events.Entities;
+global using Booking.Domain.Events.ValueObjects;
+global using Booking.Domain.Reservations;
+global using Booking.Domain.Reservations.ValueObjects;
+global using Shared.Kernel.Domain.Exceptions;

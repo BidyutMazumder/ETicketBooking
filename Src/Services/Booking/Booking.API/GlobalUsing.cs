@@ -1,0 +1,10 @@
+global using Booking.API.Common.Exceptions;
+global using Booking.Application.Features.Events.Commands.CreateEvent;
+global using Booking.Application.Features.Events.Queries.GetAvailableSeats;
+global using Booking.Application.Features.Reservations.Commands.ConfirmBooking;
+global using Booking.Application.Features.Reservations.Commands.HoldSeat;
+global using Booking.Application.DTOs;
+global using FluentValidation;
+global using Mediator;
+global using Microsoft.AspNetCore.Mvc;
+global using Shared.Kernel.Domain.Abstractions;
