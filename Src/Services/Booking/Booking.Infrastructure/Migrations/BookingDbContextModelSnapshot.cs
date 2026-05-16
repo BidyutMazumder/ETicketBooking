@@ -64,6 +64,54 @@ namespace Booking.Infrastructure.Migrations
                     b.ToTable("Events", (string)null);
                 });
 
+            modelBuilder.Entity("Booking.Domain.Events.SeatCategory", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2")
+                        .HasColumnName("CreatedAt");
+
+                    b.Property<string>("Description")
+                        .IsRequired()
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)")
+                        .HasColumnName("Description");
+
+                    b.Property<decimal>("DiscountPercentage")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("decimal(5,2)")
+                        .HasDefaultValue(0m)
+                        .HasColumnName("DiscountPercentage");
+
+                    b.Property<bool>("IsActive")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bit")
+                        .HasDefaultValue(true)
+                        .HasColumnName("IsActive");
+
+                    b.Property<string>("LastModifiedBy")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("SeatType")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)")
+                        .HasColumnName("SeatType");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("datetime2")
+                        .HasColumnName("UpdatedAt");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("Id")
+                        .IsUnique();
+
+                    b.ToTable("SeatCategories", (string)null);
+                });
+
             modelBuilder.Entity("Booking.Domain.Reservations.Reservation", b =>
                 {
                     b.Property<Guid>("Id")
@@ -81,6 +129,20 @@ namespace Booking.Infrastructure.Migrations
                     b.Property<string>("LastModifiedBy")
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<string>("PaymentStatus")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)")
+                        .HasDefaultValue("Pending");
+
+                    b.Property<byte[]>("RowVersion")
+                        .IsConcurrencyToken()
+                        .IsRequired()
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("rowversion")
+                        .HasColumnName("RowVersion");
+
                     b.Property<Guid>("SeatId")
                         .HasColumnType("uniqueidentifier");
 
@@ -88,6 +150,10 @@ namespace Booking.Infrastructure.Migrations
                         .IsRequired()
                         .HasMaxLength(50)
                         .HasColumnType("nvarchar(50)");
+
+                    b.Property<string>("StripePaymentIntentId")
+                        .HasMaxLength(256)
+                        .HasColumnType("nvarchar(256)");
 
                     b.Property<DateTime?>("UpdatedAt")
                         .HasColumnType("datetime2");
@@ -101,7 +167,11 @@ namespace Booking.Infrastructure.Migrations
 
                     b.HasIndex("HoldExpiresAtUtc");
 
+                    b.HasIndex("PaymentStatus");
+
                     b.HasIndex("SeatId");
+
+                    b.HasIndex("StripePaymentIntentId");
 
                     b.HasIndex("UserId");
 
@@ -129,9 +199,6 @@ namespace Booking.Infrastructure.Migrations
                                 .HasColumnType("int")
                                 .HasColumnName("Number");
 
-                            b1.Property<decimal>("Price")
-                                .HasColumnType("decimal(10,2)");
-
                             b1.Property<string>("Row")
                                 .IsRequired()
                                 .HasMaxLength(50)
@@ -148,12 +215,14 @@ namespace Booking.Infrastructure.Migrations
                             b1.Property<string>("Status")
                                 .IsRequired()
                                 .HasMaxLength(50)
-                                .HasColumnType("nvarchar(50)");
+                                .HasColumnType("nvarchar(50)")
+                                .HasColumnName("Status");
 
                             b1.Property<string>("Type")
                                 .IsRequired()
                                 .HasMaxLength(50)
-                                .HasColumnType("nvarchar(50)");
+                                .HasColumnType("nvarchar(50)")
+                                .HasColumnName("Type");
 
                             b1.HasKey("Id");
 
@@ -166,9 +235,86 @@ namespace Booking.Infrastructure.Migrations
 
                             b1.WithOwner()
                                 .HasForeignKey("EventId");
+
+                            b1.OwnsOne("Shared.Kernel.Domain.ValueObjects.Money", "Price", b2 =>
+                                {
+                                    b2.Property<Guid>("SeatId")
+                                        .HasColumnType("uniqueidentifier");
+
+                                    b2.Property<decimal>("Amount")
+                                        .HasColumnType("decimal(10,2)")
+                                        .HasColumnName("PriceAmount");
+
+                                    b2.Property<string>("Currency")
+                                        .IsRequired()
+                                        .HasMaxLength(3)
+                                        .HasColumnType("nvarchar(3)")
+                                        .HasColumnName("PriceCurrency");
+
+                                    b2.HasKey("SeatId");
+
+                                    b2.ToTable("Seats");
+
+                                    b2.WithOwner()
+                                        .HasForeignKey("SeatId");
+                                });
+
+                            b1.Navigation("Price")
+                                .IsRequired();
                         });
 
                     b.Navigation("Seats");
+                });
+
+            modelBuilder.Entity("Booking.Domain.Events.SeatCategory", b =>
+                {
+                    b.OwnsOne("Shared.Kernel.Domain.ValueObjects.Money", "BasePrice", b1 =>
+                        {
+                            b1.Property<Guid>("SeatCategoryId")
+                                .HasColumnType("uniqueidentifier");
+
+                            b1.Property<decimal>("Amount")
+                                .HasColumnType("decimal(10,2)")
+                                .HasColumnName("BasePriceAmount");
+
+                            b1.Property<string>("Currency")
+                                .IsRequired()
+                                .HasMaxLength(3)
+                                .HasColumnType("nvarchar(3)")
+                                .HasColumnName("BasePriceCurrency");
+
+                            b1.HasKey("SeatCategoryId");
+
+                            b1.ToTable("SeatCategories");
+
+                            b1.WithOwner()
+                                .HasForeignKey("SeatCategoryId");
+                        });
+
+                    b.OwnsOne("Booking.Domain.Events.ValueObjects.SeatCategoryName", "Name", b1 =>
+                        {
+                            b1.Property<Guid>("SeatCategoryId")
+                                .HasColumnType("uniqueidentifier");
+
+                            b1.Property<string>("Value")
+                                .IsRequired()
+                                .HasMaxLength(100)
+                                .HasColumnType("nvarchar(100)")
+                                .HasColumnName("Name");
+
+                            b1.HasKey("SeatCategoryId");
+
+                            b1.ToTable("SeatCategories");
+
+                            b1.WithOwner()
+                                .HasForeignKey("SeatCategoryId");
+                        });
+
+                    b.Navigation("BasePrice")
+                        .IsRequired();
+
+                    b.Navigation("Name")
+                        .IsRequired();
                 });
 #pragma warning restore 612, 618
         }

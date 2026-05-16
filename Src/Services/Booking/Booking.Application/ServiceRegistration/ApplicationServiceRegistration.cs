@@ -16,6 +16,7 @@ public static class ApplicationServiceRegistration
         services.AddScoped<IEventMapper, EventMapper>();
         services.AddScoped<IReservationMapper, ReservationMapper>();
         services.AddScoped<ISeatMapper, SeatMapper>();
+        services.AddScoped<ISeatCategoryMapper, SeatCategoryMapper>();
 
         services.AddValidatorsFromAssembly(typeof(ApplicationServiceRegistration).Assembly);
         services.AddTransient(typeof(IPipelineBehavior<,>), typeof(ValidationBehavior<,>));

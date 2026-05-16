@@ -16,6 +16,7 @@ public static class InfrastructureServiceRegistration
         // Repositories
         services.AddScoped<IEventRepository, EventRepository>();
         services.AddScoped<IReservationRepository, ReservationRepository>();
+        services.AddScoped<ISeatCategoryRepository, SeatCategoryRepository>();
 
         // Payment Service
         services.AddScoped<IPaymentService, StripePaymentService>();

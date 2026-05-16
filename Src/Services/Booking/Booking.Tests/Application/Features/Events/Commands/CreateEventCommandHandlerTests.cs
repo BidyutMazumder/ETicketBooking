@@ -9,13 +9,15 @@ public sealed class CreateEventCommandHandlerTests
 {
     private readonly Mock<IEventRepository> _eventRepositoryMock;
     private readonly Mock<IEventMapper> _mapperMock;
+    private readonly Mock<ISeatMapper> _seatMapperMock;
     private readonly CreateEventCommandHandler _handler;
 
     public CreateEventCommandHandlerTests()
     {
         _eventRepositoryMock = new Mock<IEventRepository>();
         _mapperMock = new Mock<IEventMapper>();
-        _handler = new CreateEventCommandHandler(_eventRepositoryMock.Object, _mapperMock.Object);
+        _seatMapperMock = new Mock<ISeatMapper>();
+        _handler = new CreateEventCommandHandler(_eventRepositoryMock.Object, _mapperMock.Object, _seatMapperMock.Object);
     }
 
     [Fact]

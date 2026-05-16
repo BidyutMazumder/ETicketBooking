@@ -37,8 +37,10 @@ public sealed class HoldSeatCommandHandlerTests
 
         var command = new HoldSeatCommand(eventId, seatId, userId);
 
-        var @event = Event.Create("Test Event", "Description", DateTime.UtcNow.AddDays(30), "Venue");
-        var seat = Seat.Create("A", 1, SeatType.VIP, 150.00m);
+        var eventResult = Event.Create("Test Event", "Description", DateTime.UtcNow.AddDays(30), "Venue");
+        var @event = eventResult.Value;
+        var seatResult = Seat.Create("A", 1, SeatType.VIP, Money.Create(150.00m, "USD"));
+        var seat = seatResult.Value;
         @event.AddSeat(seat);
 
         var reservation = Reservation.Create(userId, eventId, seatId, TimeSpan.FromMinutes(10));
@@ -107,8 +109,10 @@ public sealed class HoldSeatCommandHandlerTests
 
         var command = new HoldSeatCommand(eventId, seatId, userId);
 
-        var @event = Event.Create("Test Event", "Description", DateTime.UtcNow.AddDays(30), "Venue");
-        var seat = Seat.Create("A", 1, SeatType.VIP, 150.00m);
+        var eventResult = Event.Create("Test Event", "Description", DateTime.UtcNow.AddDays(30), "Venue");
+        var @event = eventResult.Value;
+        var seatResult = Seat.Create("A", 1, SeatType.VIP, Money.Create(150.00m, "USD"));
+        var seat = seatResult.Value;
         seat.Hold(TimeSpan.FromMinutes(10)); // Already held
         @event.AddSeat(seat);
 

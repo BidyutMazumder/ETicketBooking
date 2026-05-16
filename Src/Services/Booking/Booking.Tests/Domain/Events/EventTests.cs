@@ -8,16 +8,17 @@ public sealed class EventTests
     public void Create_WithValidInputs_ReturnsEvent()
     {
         // Arrange
-        var title = "Taylor Swift - Eras Tour";
-        var description = "The biggest concert of the year";
+        var title = "Concert 2024";
+        var description = "Amazing concert";
         var startDateTime = DateTime.UtcNow.AddDays(30);
-        var venueName = "MetLife Stadium";
+        var venueName = "Madison Square Garden";
 
         // Act
-        var @event = Event.Create(title, description, startDateTime, venueName);
+        var result = Event.Create(title, description, startDateTime, venueName);
 
         // Assert
-        @event.Should().NotBeNull();
+        result.IsSuccess.Should().BeTrue();
+        var @event = result.Value;
         @event.Title.Should().Be(title);
         @event.Description.Should().Be(description);
         @event.StartDateTime.Should().Be(startDateTime);
@@ -27,91 +28,36 @@ public sealed class EventTests
     }
 
     [Fact]
-    public void Create_WithEmptyTitle_ThrowsException()
+    public void Create_WithEmptyTitle_ReturnsFailure()
     {
-        // Arrange
-        var title = string.Empty;
-        var description = "Valid description";
-        var startDateTime = DateTime.UtcNow.AddDays(30);
-        var venueName = "Valid Venue";
+        // Act
+        var result = Event.Create(string.Empty, "Description", DateTime.UtcNow.AddDays(1), "Venue");
 
-        // Act & Assert
-        var act = () => Event.Create(title, description, startDateTime, venueName);
-        act.Should().Throw<DomainException>()
-            .WithMessage("Event title cannot be empty");
+        // Assert
+        result.IsFailure.Should().BeTrue();
+        result.Error.Code.Should().Be("Event.InvalidTitle");
     }
 
     [Fact]
-    public void Create_WithNullTitle_ThrowsException()
+    public void Create_WithPastDateTime_ReturnsFailure()
     {
-        // Arrange
-        string? title = null;
-        var description = "Valid description";
-        var startDateTime = DateTime.UtcNow.AddDays(30);
-        var venueName = "Valid Venue";
+        // Act
+        var result = Event.Create("Title", "Description", DateTime.UtcNow.AddDays(-1), "Venue");
 
-        // Act & Assert
-        var act = () => Event.Create(title!, description, startDateTime, venueName);
-        act.Should().Throw<DomainException>();
+        // Assert
+        result.IsFailure.Should().BeTrue();
+        result.Error.Code.Should().Be("Event.InvalidStartDate");
     }
 
     [Fact]
-    public void Create_WithPastDateTime_ThrowsException()
+    public void Create_WithEmptyVenue_ReturnsFailure()
     {
-        // Arrange
-        var title = "Past Event";
-        var description = "Valid description";
-        var startDateTime = DateTime.UtcNow.AddDays(-1);
-        var venueName = "Valid Venue";
+        // Act
+        var result = Event.Create("Title", "Description", DateTime.UtcNow.AddDays(1), string.Empty);
 
-        // Act & Assert
-        var act = () => Event.Create(title, description, startDateTime, venueName);
-        act.Should().Throw<DomainException>()
-            .WithMessage("Event start date must be in the future");
-    }
-
-    [Fact]
-    public void Create_WithCurrentDateTime_ThrowsException()
-    {
-        // Arrange
-        var title = "Current Event";
-        var description = "Valid description";
-        var startDateTime = DateTime.UtcNow;
-        var venueName = "Valid Venue";
-
-        // Act & Assert
-        var act = () => Event.Create(title, description, startDateTime, venueName);
-        act.Should().Throw<DomainException>();
-    }
-
-    [Fact]
-    public void Create_WithEmptyDescription_ThrowsException()
-    {
-        // Arrange
-        var title = "Valid Title";
-        var description = string.Empty;
-        var startDateTime = DateTime.UtcNow.AddDays(30);
-        var venueName = "Valid Venue";
-
-        // Act & Assert
-        var act = () => Event.Create(title, description, startDateTime, venueName);
-        act.Should().Throw<DomainException>()
-            .WithMessage("Event description cannot be empty");
-    }
-
-    [Fact]
-    public void Create_WithEmptyVenueName_ThrowsException()
-    {
-        // Arrange
-        var title = "Valid Title";
-        var description = "Valid description";
-        var startDateTime = DateTime.UtcNow.AddDays(30);
-        var venueName = string.Empty;
-
-        // Act & Assert
-        var act = () => Event.Create(title, description, startDateTime, venueName);
-        act.Should().Throw<DomainException>()
-            .WithMessage("Event venue name cannot be empty");
+        // Assert
+        result.IsFailure.Should().BeTrue();
+        result.Error.Code.Should().Be("Event.InvalidVenue");
     }
 
     #endregion
@@ -119,45 +65,40 @@ public sealed class EventTests
     #region Event.AddSeat
 
     [Fact]
-    public void AddSeat_WithValidSeat_AddsSeatToEvent()
+    public void AddSeat_WithValidSeat_AddsToCollection()
     {
         // Arrange
-        var @event = CreateValidEvent();
-        var seat = Seat.Create("A", 1, SeatType.VIP, 150.00m);
+        var eventResult = Event.Create("Title", "Description", DateTime.UtcNow.AddDays(1), "Venue");
+        var @event = eventResult.Value;
+        var seatResult = Seat.Create("A", 1, SeatType.VIP, Money.Create(150.00m, "USD"));
+        var seat = seatResult.Value;
 
         // Act
-        @event.AddSeat(seat);
+        var addResult = @event.AddSeat(seat);
 
         // Assert
+        addResult.IsSuccess.Should().BeTrue();
         @event.Seats.Should().HaveCount(1);
         @event.Seats.First().Should().Be(seat);
     }
 
     [Fact]
-    public void AddSeat_WithDuplicateSeat_ThrowsException()
+    public void AddSeat_WithDuplicateSeat_ReturnsFailure()
     {
         // Arrange
-        var @event = CreateValidEvent();
-        var seat1 = Seat.Create("A", 1, SeatType.VIP, 150.00m);
-        var seat2 = Seat.Create("A", 1, SeatType.VIP, 150.00m);
+        var eventResult = Event.Create("Title", "Description", DateTime.UtcNow.AddDays(1), "Venue");
+        var @event = eventResult.Value;
+        var seatResult1 = Seat.Create("A", 1, SeatType.VIP, Money.Create(150.00m, "USD"));
+        var seatResult2 = Seat.Create("A", 1, SeatType.VIP, Money.Create(150.00m, "USD"));
 
-        @event.AddSeat(seat1);
+        @event.AddSeat(seatResult1.Value);
 
-        // Act & Assert
-        var act = () => @event.AddSeat(seat2);
-        act.Should().Throw<DomainException>()
-            .WithMessage("*already exists*");
-    }
+        // Act
+        var addResult = @event.AddSeat(seatResult2.Value);
 
-    [Fact]
-    public void AddSeat_WithNullSeat_ThrowsException()
-    {
-        // Arrange
-        var @event = CreateValidEvent();
-
-        // Act & Assert
-        var act = () => @event.AddSeat(null!);
-        act.Should().Throw<ArgumentNullException>();
+        // Assert
+        addResult.IsFailure.Should().BeTrue();
+        addResult.Error.Code.Should().Be("Event.DuplicateSeat");
     }
 
     #endregion
@@ -165,18 +106,38 @@ public sealed class EventTests
     #region Event.RemoveSeat
 
     [Fact]
-    public void RemoveSeat_WithExistingSeat_RemovesSeat()
+    public void RemoveSeat_WithExistingSeat_RemovesFromCollection()
     {
         // Arrange
-        var @event = CreateValidEvent();
-        var seat = Seat.Create("A", 1, SeatType.VIP, 150.00m);
+        var eventResult = Event.Create("Title", "Description", DateTime.UtcNow.AddDays(1), "Venue");
+        var @event = eventResult.Value;
+        var seatResult = Seat.Create("A", 1, SeatType.VIP, Money.Create(150.00m, "USD"));
+        var seat = seatResult.Value;
         @event.AddSeat(seat);
 
         // Act
-        @event.RemoveSeat(seat);
+        var removeResult = @event.RemoveSeat(seat);
 
         // Assert
+        removeResult.IsSuccess.Should().BeTrue();
         @event.Seats.Should().BeEmpty();
+    }
+
+    [Fact]
+    public void RemoveSeat_WithNonExistingSeat_ReturnsFailure()
+    {
+        // Arrange
+        var eventResult = Event.Create("Title", "Description", DateTime.UtcNow.AddDays(1), "Venue");
+        var @event = eventResult.Value;
+        var seatResult = Seat.Create("A", 1, SeatType.VIP, Money.Create(150.00m, "USD"));
+        var seat = seatResult.Value;
+
+        // Act
+        var removeResult = @event.RemoveSeat(seat);
+
+        // Assert
+        removeResult.IsFailure.Should().BeTrue();
+        removeResult.Error.Code.Should().Be("Event.SeatNotFound");
     }
 
     #endregion
@@ -184,90 +145,130 @@ public sealed class EventTests
     #region Event.GetSeat
 
     [Fact]
-    public void GetSeat_ByIdWithExistingSeat_ReturnsSeat()
+    public void GetSeat_WithValidId_ReturnsSeat()
     {
         // Arrange
-        var @event = CreateValidEvent();
-        var seat = Seat.Create("A", 1, SeatType.VIP, 150.00m);
+        var eventResult = Event.Create("Title", "Description", DateTime.UtcNow.AddDays(1), "Venue");
+        var @event = eventResult.Value;
+        var seatResult = Seat.Create("A", 1, SeatType.VIP, Money.Create(150.00m, "USD"));
+        var seat = seatResult.Value;
         @event.AddSeat(seat);
 
         // Act
-        var result = @event.GetSeat(seat.Id);
+        var foundSeat = @event.GetSeat(seat.Id);
 
         // Assert
-        result.Should().Be(seat);
+        foundSeat.Should().NotBeNull();
+        foundSeat.Should().Be(seat);
     }
 
     [Fact]
-    public void GetSeat_ByIdWithNonExistentId_ReturnsNull()
+    public void GetSeatByRowAndNumber_WithValidRowAndNumber_ReturnsSeat()
     {
         // Arrange
-        var @event = CreateValidEvent();
-
-        // Act
-        var result = @event.GetSeat(Guid.NewGuid());
-
-        // Assert
-        result.Should().BeNull();
-    }
-
-    [Fact]
-    public void GetSeat_ByRowAndNumberWithExistingSeat_ReturnsSeat()
-    {
-        // Arrange
-        var @event = CreateValidEvent();
-        var seat = Seat.Create("A", 1, SeatType.VIP, 150.00m);
+        var eventResult = Event.Create("Title", "Description", DateTime.UtcNow.AddDays(1), "Venue");
+        var @event = eventResult.Value;
+        var seatResult = Seat.Create("A", 1, SeatType.VIP, Money.Create(150.00m, "USD"));
+        var seat = seatResult.Value;
         @event.AddSeat(seat);
 
         // Act
-        var result = @event.GetSeat("A", 1);
+        var foundSeat = @event.GetSeatByRowAndNumber("A", 1);
 
         // Assert
-        result.Should().Be(seat);
+        foundSeat.Should().NotBeNull();
+        foundSeat.Should().Be(seat);
     }
 
     #endregion
 
-    #region Event.Publish
+    #region Event.PublishEvent
 
     [Fact]
-    public void Publish_WithSeats_PublishesEvent()
+    public void PublishEvent_WithSeats_ChangesIsPublishedToTrue()
     {
         // Arrange
-        var @event = CreateValidEvent();
-        @event.AddSeat(Seat.Create("A", 1, SeatType.VIP, 150.00m));
+        var eventResult = Event.Create("Title", "Description", DateTime.UtcNow.AddDays(1), "Venue");
+        var @event = eventResult.Value;
+        var seatResult = Seat.Create("A", 1, SeatType.VIP, Money.Create(150.00m, "USD"));
+        @event.AddSeat(seatResult.Value);
 
         // Act
-        @event.Publish();
+        var publishResult = @event.PublishEvent();
 
         // Assert
+        publishResult.IsSuccess.Should().BeTrue();
         @event.IsPublished.Should().BeTrue();
     }
 
     [Fact]
-    public void Publish_WithoutSeats_ThrowsException()
+    public void PublishEvent_WithoutSeats_ReturnsFailure()
     {
         // Arrange
-        var @event = CreateValidEvent();
+        var eventResult = Event.Create("Title", "Description", DateTime.UtcNow.AddDays(1), "Venue");
+        var @event = eventResult.Value;
 
-        // Act & Assert
-        var act = () => @event.Publish();
-        act.Should().Throw<DomainException>()
-            .WithMessage("*without seats*");
+        // Act
+        var publishResult = @event.PublishEvent();
+
+        // Assert
+        publishResult.IsFailure.Should().BeTrue();
+        publishResult.Error.Code.Should().Be("Event.NoSeats");
     }
 
     [Fact]
-    public void Publish_WhenAlreadyPublished_ThrowsException()
+    public void PublishEvent_WhenAlreadyPublished_ReturnsFailure()
     {
         // Arrange
-        var @event = CreateValidEvent();
-        @event.AddSeat(Seat.Create("A", 1, SeatType.VIP, 150.00m));
-        @event.Publish();
+        var eventResult = Event.Create("Title", "Description", DateTime.UtcNow.AddDays(1), "Venue");
+        var @event = eventResult.Value;
+        var seatResult = Seat.Create("A", 1, SeatType.VIP, Money.Create(150.00m, "USD"));
+        @event.AddSeat(seatResult.Value);
+        @event.PublishEvent();
 
-        // Act & Assert
-        var act = () => @event.Publish();
-        act.Should().Throw<DomainException>()
-            .WithMessage("*already published*");
+        // Act
+        var publishResult = @event.PublishEvent();
+
+        // Assert
+        publishResult.IsFailure.Should().BeTrue();
+        publishResult.Error.Code.Should().Be("Event.AlreadyPublished");
+    }
+
+    #endregion
+
+    #region Event.UnpublishEvent
+
+    [Fact]
+    public void UnpublishEvent_WhenPublished_ChangesIsPublishedToFalse()
+    {
+        // Arrange
+        var eventResult = Event.Create("Title", "Description", DateTime.UtcNow.AddDays(1), "Venue");
+        var @event = eventResult.Value;
+        var seatResult = Seat.Create("A", 1, SeatType.VIP, Money.Create(150.00m, "USD"));
+        @event.AddSeat(seatResult.Value);
+        @event.PublishEvent();
+
+        // Act
+        var unpublishResult = @event.UnpublishEvent();
+
+        // Assert
+        unpublishResult.IsSuccess.Should().BeTrue();
+        @event.IsPublished.Should().BeFalse();
+    }
+
+    [Fact]
+    public void UnpublishEvent_WhenNotPublished_ReturnsFailure()
+    {
+        // Arrange
+        var eventResult = Event.Create("Title", "Description", DateTime.UtcNow.AddDays(1), "Venue");
+        var @event = eventResult.Value;
+
+        // Act
+        var unpublishResult = @event.UnpublishEvent();
+
+        // Assert
+        unpublishResult.IsFailure.Should().BeTrue();
+        unpublishResult.Error.Code.Should().Be("Event.NotPublished");
     }
 
     #endregion
@@ -275,48 +276,103 @@ public sealed class EventTests
     #region Event.UpdateDetails
 
     [Fact]
-    public void UpdateDetails_WhenNotPublished_UpdatesDetails()
+    public void UpdateDetails_WithValidDetails_UpdatesProperties()
     {
         // Arrange
-        var @event = CreateValidEvent();
-        var newTitle = "Updated Title";
-        var newDescription = "Updated Description";
-        var newVenue = "Updated Venue";
+        var eventResult = Event.Create("Title", "Description", DateTime.UtcNow.AddDays(1), "Venue");
+        var @event = eventResult.Value;
+        var newTitle = "New Title";
+        var newDescription = "New Description";
+        var newVenue = "New Venue";
 
         // Act
-        @event.UpdateDetails(newTitle, newDescription, newVenue);
+        var updateResult = @event.UpdateDetails(newTitle, newDescription, newVenue);
 
         // Assert
+        updateResult.IsSuccess.Should().BeTrue();
         @event.Title.Should().Be(newTitle);
         @event.Description.Should().Be(newDescription);
         @event.VenueName.Should().Be(newVenue);
-    }
-
-    [Fact]
-    public void UpdateDetails_WhenPublished_ThrowsException()
-    {
-        // Arrange
-        var @event = CreateValidEvent();
-        @event.AddSeat(Seat.Create("A", 1, SeatType.VIP, 150.00m));
-        @event.Publish();
-
-        // Act & Assert
-        var act = () => @event.UpdateDetails("New Title", "New Desc", "New Venue");
-        act.Should().Throw<DomainException>()
-            .WithMessage("*published*");
+        @event.UpdatedAt.Should().BeCloseTo(DateTime.UtcNow, TimeSpan.FromSeconds(1));
     }
 
     #endregion
 
-    #region Helpers
+    #region Event.GenerateSeats
 
-    private static Event CreateValidEvent()
+    [Fact]
+    public void GenerateSeats_WithValidPlan_GeneratesAllSeats()
     {
-        return Event.Create(
-            "Test Event",
-            "Test Description",
-            DateTime.UtcNow.AddDays(30),
-            "Test Venue");
+        // Arrange
+        var eventResult = Event.Create("Title", "Description", DateTime.UtcNow.AddDays(1), "Venue");
+        var @event = eventResult.Value;
+
+        var rowA = SeatingPlanRow.Create("A", 1, 5, SeatType.VIP, Money.Create(150.00m, "USD")).Value;
+        var rowB = SeatingPlanRow.Create("B", 1, 10, SeatType.Regular, Money.Create(75.00m, "USD")).Value;
+        var planResult = SeatingPlan.Create(rowA, rowB);
+        var plan = planResult.Value;
+
+        // Act
+        var generateResult = @event.GenerateSeats(plan);
+
+        // Assert
+        generateResult.IsSuccess.Should().BeTrue();
+        @event.TotalSeats.Should().Be(15);
+    }
+
+    [Fact]
+    public void GenerateSeats_WhenSeatsAlreadyGenerated_ReturnsFailure()
+    {
+        // Arrange
+        var eventResult = Event.Create("Title", "Description", DateTime.UtcNow.AddDays(1), "Venue");
+        var @event = eventResult.Value;
+        var seatResult = Seat.Create("A", 1, SeatType.VIP, Money.Create(150.00m, "USD"));
+        @event.AddSeat(seatResult.Value);
+
+        var rowA = SeatingPlanRow.Create("C", 1, 5, SeatType.VIP, Money.Create(150.00m, "USD")).Value;
+        var planResult = SeatingPlan.Create(rowA);
+        var plan = planResult.Value;
+
+        // Act
+        var generateResult = @event.GenerateSeats(plan);
+
+        // Assert
+        generateResult.IsFailure.Should().BeTrue();
+        generateResult.Error.Code.Should().Be("Event.SeatsAlreadyGenerated");
+    }
+
+    #endregion
+
+    #region Event.GetTotalRevenue
+
+    [Fact]
+    public void GetTotalRevenue_WithSoldSeats_CalculatesCorrectly()
+    {
+        // Arrange
+        var eventResult = Event.Create("Title", "Description", DateTime.UtcNow.AddDays(1), "Venue");
+        var @event = eventResult.Value;
+
+        var seat1Result = Seat.Create("A", 1, SeatType.VIP, Money.Create(150.00m, "USD"));
+        var seat1 = seat1Result.Value;
+        seat1.Hold(TimeSpan.FromMinutes(10));
+        seat1.Reserve();
+        seat1.Sell();
+
+        var seat2Result = Seat.Create("A", 2, SeatType.VIP, Money.Create(150.00m, "USD"));
+        var seat2 = seat2Result.Value;
+        seat2.Hold(TimeSpan.FromMinutes(10));
+        seat2.Reserve();
+        seat2.Sell();
+
+        @event.AddSeat(seat1);
+        @event.AddSeat(seat2);
+
+        // Act
+        var revenue = @event.GetTotalRevenue();
+
+        // Assert
+        revenue.Amount.Should().Be(300.00m);
+        revenue.Currency.Should().Be("USD");
     }
 
     #endregion

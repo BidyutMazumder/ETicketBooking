@@ -7,3 +7,4 @@ global using Booking.Domain.Events.ValueObjects;
 global using Booking.Domain.Reservations;
 global using Booking.Domain.Reservations.ValueObjects;
 global using Shared.Kernel.Domain.Exceptions;
+global using Shared.Kernel.Domain.ValueObjects;

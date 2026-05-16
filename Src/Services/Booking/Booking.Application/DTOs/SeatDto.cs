@@ -5,6 +5,7 @@ public sealed record SeatDto(
     string Row,
     int Number,
     string Type,
-    decimal Price,
+    decimal PriceAmount,
+    string PriceCurrency,
     string Status,
     DateTime? HeldUntilUtc);

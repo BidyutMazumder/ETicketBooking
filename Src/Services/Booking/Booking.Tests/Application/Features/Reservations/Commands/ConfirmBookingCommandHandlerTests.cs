@@ -3,6 +3,7 @@ using Booking.Application.Common.Mappings;
 using Booking.Application.DTOs;
 using Booking.Application.Features.Reservations.Commands.ConfirmBooking;
 using Microsoft.Extensions.Logging;
+using Shared.Kernel.Domain.ValueObjects;
 
 namespace Booking.Tests.Application.Features.Reservations.Commands;
 
@@ -42,8 +43,10 @@ public sealed class ConfirmBookingCommandHandlerTests
         // Set payment status to Paid to pass the payment verification
         reservation.MarkAsPaid("pi_test_12345");
 
-        var @event = Event.Create("Test Event", "Description", DateTime.UtcNow.AddDays(30), "Venue");
-        var seat = Seat.Create("A", 1, SeatType.VIP, 150.00m);
+        var eventResult = Event.Create("Test Event", "Description", DateTime.UtcNow.AddDays(30), "Venue");
+        var @event = eventResult.Value;
+        var seatResult = Seat.Create("A", 1, SeatType.VIP, Money.Create(150.00m, "USD"));
+        var seat = seatResult.Value;
         seat.Hold(TimeSpan.FromMinutes(10));
         @event.AddSeat(seat);
 

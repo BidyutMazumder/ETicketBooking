@@ -9,7 +9,8 @@ public sealed class SeatMapper : ISeatMapper
             seat.Row,
             seat.Number,
             seat.Type.Value,
-            seat.Price,
+            seat.Price.Amount,
+            seat.Price.Currency,
             seat.Status.Value,
             seat.HeldUntilUtc);
     }

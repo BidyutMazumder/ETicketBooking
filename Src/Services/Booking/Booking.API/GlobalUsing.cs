@@ -1,8 +1,16 @@
 global using Booking.API.Common.Exceptions;
 global using Booking.Application.Features.Events.Commands.CreateEvent;
 global using Booking.Application.Features.Events.Queries.GetAvailableSeats;
+global using Booking.Application.Features.Events.Queries.GetAllSeats;
+global using Booking.Application.Features.Events.Queries.GetCategoryWiseSeatCount;
 global using Booking.Application.Features.Reservations.Commands.ConfirmBooking;
 global using Booking.Application.Features.Reservations.Commands.HoldSeat;
+global using Booking.Application.Features.SeatCategories.Commands.ApplyDiscountCommand;
+global using Booking.Application.Features.SeatCategories.Commands.CreateSeatCategory;
+global using Booking.Application.Features.SeatCategories.Commands.UpdateBasePriceCommand;
+global using Booking.Application.Features.SeatCategories.Common;
+global using Booking.Application.Features.SeatCategories.Queries.GetAllSeatCategories;
+global using Booking.Application.Features.SeatCategories.Queries.GetSeatCategoryById;
 global using Booking.Application.DTOs;
 global using FluentValidation;
 global using Mediator;

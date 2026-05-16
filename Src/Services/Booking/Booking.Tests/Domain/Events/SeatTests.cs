@@ -11,13 +11,14 @@ public sealed class SeatTests
         var row = "A";
         var number = 1;
         var type = SeatType.VIP;
-        var price = 150.00m;
+        var price = Money.Create(150.00m, "USD");
 
         // Act
-        var seat = Seat.Create(row, number, type, price);
+        var result = Seat.Create(row, number, type, price);
 
         // Assert
-        seat.Should().NotBeNull();
+        result.IsSuccess.Should().BeTrue();
+        var seat = result.Value;
         seat.Row.Should().Be(row);
         seat.Number.Should().Be(number);
         seat.Type.Should().Be(type);
@@ -26,30 +27,36 @@ public sealed class SeatTests
     }
 
     [Fact]
-    public void Create_WithEmptyRow_ThrowsException()
+    public void Create_WithEmptyRow_ReturnsFailure()
     {
-        // Act & Assert
-        var act = () => Seat.Create(string.Empty, 1, SeatType.VIP, 150.00m);
-        act.Should().Throw<DomainException>()
-            .WithMessage("*row cannot be empty*");
+        // Act
+        var result = Seat.Create(string.Empty, 1, SeatType.VIP, Money.Create(150.00m, "USD"));
+
+        // Assert
+        result.IsFailure.Should().BeTrue();
+        result.Error.Code.Should().Be("Seat.InvalidRow");
     }
 
     [Fact]
-    public void Create_WithZeroNumber_ThrowsException()
+    public void Create_WithZeroNumber_ReturnsFailure()
     {
-        // Act & Assert
-        var act = () => Seat.Create("A", 0, SeatType.VIP, 150.00m);
-        act.Should().Throw<DomainException>()
-            .WithMessage("*greater than zero*");
+        // Act
+        var result = Seat.Create("A", 0, SeatType.VIP, Money.Create(150.00m, "USD"));
+
+        // Assert
+        result.IsFailure.Should().BeTrue();
+        result.Error.Code.Should().Be("Seat.InvalidNumber");
     }
 
     [Fact]
-    public void Create_WithNegativePrice_ThrowsException()
+    public void Create_WithNullPrice_ReturnsFailure()
     {
-        // Act & Assert
-        var act = () => Seat.Create("A", 1, SeatType.VIP, -10.00m);
-        act.Should().Throw<DomainException>()
-            .WithMessage("*negative*");
+        // Act
+        var result = Seat.Create("A", 1, SeatType.VIP, null!);
+
+        // Assert
+        result.IsFailure.Should().BeTrue();
+        result.Error.Code.Should().Be("Seat.NullPrice");
     }
 
     #endregion
@@ -60,55 +67,68 @@ public sealed class SeatTests
     public void Hold_FromAvailable_TransitionsToHeld()
     {
         // Arrange
-        var seat = Seat.Create("A", 1, SeatType.VIP, 150.00m);
+        var result = Seat.Create("A", 1, SeatType.VIP, Money.Create(150.00m, "USD"));
+        var seat = result.Value;
         var duration = TimeSpan.FromMinutes(10);
 
         // Act
-        seat.Hold(duration);
+        var holdResult = seat.Hold(duration);
 
         // Assert
+        holdResult.IsSuccess.Should().BeTrue();
         seat.Status.Should().Be(SeatStatus.Held);
         seat.HeldUntilUtc.Should().BeCloseTo(DateTime.UtcNow.Add(duration), TimeSpan.FromSeconds(1));
     }
 
     [Fact]
-    public void Hold_FromHeld_ThrowsException()
+    public void Hold_FromHeld_ReturnsFailure()
     {
         // Arrange
-        var seat = Seat.Create("A", 1, SeatType.VIP, 150.00m);
+        var result = Seat.Create("A", 1, SeatType.VIP, Money.Create(150.00m, "USD"));
+        var seat = result.Value;
         seat.Hold(TimeSpan.FromMinutes(10));
 
-        // Act & Assert
-        var act = () => seat.Hold(TimeSpan.FromMinutes(10));
-        act.Should().Throw<DomainException>()
-            .WithMessage("*Cannot hold*");
+        // Act
+        var holdResult = seat.Hold(TimeSpan.FromMinutes(10));
+
+        // Assert
+        holdResult.IsFailure.Should().BeTrue();
+        holdResult.Error.Code.Should().Be("Seat.CannotHold");
     }
 
     [Fact]
-    public void Hold_FromReserved_ThrowsException()
+    public void Hold_FromReserved_ReturnsFailure()
     {
         // Arrange
-        var seat = Seat.Create("A", 1, SeatType.VIP, 150.00m);
+        var result = Seat.Create("A", 1, SeatType.VIP, Money.Create(150.00m, "USD"));
+        var seat = result.Value;
         seat.Hold(TimeSpan.FromMinutes(10));
         seat.Reserve();
 
-        // Act & Assert
-        var act = () => seat.Hold(TimeSpan.FromMinutes(10));
-        act.Should().Throw<DomainException>();
+        // Act
+        var holdResult = seat.Hold(TimeSpan.FromMinutes(10));
+
+        // Assert
+        holdResult.IsFailure.Should().BeTrue();
+        holdResult.Error.Code.Should().Be("Seat.CannotHold");
     }
 
     [Fact]
-    public void Hold_FromSold_ThrowsException()
+    public void Hold_FromSold_ReturnsFailure()
     {
         // Arrange
-        var seat = Seat.Create("A", 1, SeatType.VIP, 150.00m);
+        var result = Seat.Create("A", 1, SeatType.VIP, Money.Create(150.00m, "USD"));
+        var seat = result.Value;
         seat.Hold(TimeSpan.FromMinutes(10));
         seat.Reserve();
         seat.Sell();
 
-        // Act & Assert
-        var act = () => seat.Hold(TimeSpan.FromMinutes(10));
-        act.Should().Throw<DomainException>();
+        // Act
+        var holdResult = seat.Hold(TimeSpan.FromMinutes(10));
+
+        // Assert
+        holdResult.IsFailure.Should().BeTrue();
+        holdResult.Error.Code.Should().Be("Seat.CannotHold");
     }
 
     #endregion
@@ -119,27 +139,32 @@ public sealed class SeatTests
     public void Release_FromHeld_TransitionsToAvailable()
     {
         // Arrange
-        var seat = Seat.Create("A", 1, SeatType.VIP, 150.00m);
+        var result = Seat.Create("A", 1, SeatType.VIP, Money.Create(150.00m, "USD"));
+        var seat = result.Value;
         seat.Hold(TimeSpan.FromMinutes(10));
 
         // Act
-        seat.Release();
+        var releaseResult = seat.Release();
 
         // Assert
+        releaseResult.IsSuccess.Should().BeTrue();
         seat.Status.Should().Be(SeatStatus.Available);
         seat.HeldUntilUtc.Should().BeNull();
     }
 
     [Fact]
-    public void Release_FromAvailable_ThrowsException()
+    public void Release_FromAvailable_ReturnsFailure()
     {
         // Arrange
-        var seat = Seat.Create("A", 1, SeatType.VIP, 150.00m);
+        var result = Seat.Create("A", 1, SeatType.VIP, Money.Create(150.00m, "USD"));
+        var seat = result.Value;
 
-        // Act & Assert
-        var act = () => seat.Release();
-        act.Should().Throw<DomainException>()
-            .WithMessage("*Only held seats*");
+        // Act
+        var releaseResult = seat.Release();
+
+        // Assert
+        releaseResult.IsFailure.Should().BeTrue();
+        releaseResult.Error.Code.Should().Be("Seat.CannotRelease");
     }
 
     #endregion
@@ -150,26 +175,32 @@ public sealed class SeatTests
     public void Reserve_FromHeld_TransitionsToReserved()
     {
         // Arrange
-        var seat = Seat.Create("A", 1, SeatType.VIP, 150.00m);
+        var result = Seat.Create("A", 1, SeatType.VIP, Money.Create(150.00m, "USD"));
+        var seat = result.Value;
         seat.Hold(TimeSpan.FromMinutes(10));
 
         // Act
-        seat.Reserve();
+        var reserveResult = seat.Reserve();
 
         // Assert
+        reserveResult.IsSuccess.Should().BeTrue();
         seat.Status.Should().Be(SeatStatus.Reserved);
+        seat.HeldUntilUtc.Should().BeNull();
     }
 
     [Fact]
-    public void Reserve_FromAvailable_ThrowsException()
+    public void Reserve_FromAvailable_ReturnsFailure()
     {
         // Arrange
-        var seat = Seat.Create("A", 1, SeatType.VIP, 150.00m);
+        var result = Seat.Create("A", 1, SeatType.VIP, Money.Create(150.00m, "USD"));
+        var seat = result.Value;
 
-        // Act & Assert
-        var act = () => seat.Reserve();
-        act.Should().Throw<DomainException>()
-            .WithMessage("*Only held seats*");
+        // Act
+        var reserveResult = seat.Reserve();
+
+        // Assert
+        reserveResult.IsFailure.Should().BeTrue();
+        reserveResult.Error.Code.Should().Be("Seat.CannotReserve");
     }
 
     #endregion
@@ -180,27 +211,32 @@ public sealed class SeatTests
     public void Sell_FromReserved_TransitionsToSold()
     {
         // Arrange
-        var seat = Seat.Create("A", 1, SeatType.VIP, 150.00m);
+        var result = Seat.Create("A", 1, SeatType.VIP, Money.Create(150.00m, "USD"));
+        var seat = result.Value;
         seat.Hold(TimeSpan.FromMinutes(10));
         seat.Reserve();
 
         // Act
-        seat.Sell();
+        var sellResult = seat.Sell();
 
         // Assert
+        sellResult.IsSuccess.Should().BeTrue();
         seat.Status.Should().Be(SeatStatus.Sold);
     }
 
     [Fact]
-    public void Sell_FromAvailable_ThrowsException()
+    public void Sell_FromAvailable_ReturnsFailure()
     {
         // Arrange
-        var seat = Seat.Create("A", 1, SeatType.VIP, 150.00m);
+        var result = Seat.Create("A", 1, SeatType.VIP, Money.Create(150.00m, "USD"));
+        var seat = result.Value;
 
-        // Act & Assert
-        var act = () => seat.Sell();
-        act.Should().Throw<DomainException>()
-            .WithMessage("*Only reserved seats*");
+        // Act
+        var sellResult = seat.Sell();
+
+        // Assert
+        sellResult.IsFailure.Should().BeTrue();
+        sellResult.Error.Code.Should().Be("Seat.CannotSell");
     }
 
     #endregion
@@ -208,44 +244,34 @@ public sealed class SeatTests
     #region Seat.IsHoldExpired
 
     [Fact]
-    public void IsHoldExpired_WithFutureExpiry_ReturnsFalse()
+    public void IsHoldExpired_WhenHoldHasExpired_ReturnsTrue()
     {
         // Arrange
-        var seat = Seat.Create("A", 1, SeatType.VIP, 150.00m);
+        var result = Seat.Create("A", 1, SeatType.VIP, Money.Create(150.00m, "USD"));
+        var seat = result.Value;
+        seat.Hold(TimeSpan.FromMilliseconds(100));
+
+        // Act
+        System.Threading.Thread.Sleep(150);
+        var isExpired = seat.IsHoldExpired();
+
+        // Assert
+        isExpired.Should().BeTrue();
+    }
+
+    [Fact]
+    public void IsHoldExpired_WhenHoldHasNotExpired_ReturnsFalse()
+    {
+        // Arrange
+        var result = Seat.Create("A", 1, SeatType.VIP, Money.Create(150.00m, "USD"));
+        var seat = result.Value;
         seat.Hold(TimeSpan.FromMinutes(10));
 
         // Act
-        var result = seat.IsHoldExpired();
+        var isExpired = seat.IsHoldExpired();
 
         // Assert
-        result.Should().BeFalse();
-    }
-
-    [Fact]
-    public void IsHoldExpired_WithPastExpiry_ReturnsTrue()
-    {
-        // Arrange
-        var seat = Seat.Create("A", 1, SeatType.VIP, 150.00m);
-        seat.Hold(TimeSpan.FromMilliseconds(-100)); // Already expired
-
-        // Act
-        var result = seat.IsHoldExpired();
-
-        // Assert
-        result.Should().BeTrue();
-    }
-
-    [Fact]
-    public void IsHoldExpired_WhenNotHeld_ReturnsFalse()
-    {
-        // Arrange
-        var seat = Seat.Create("A", 1, SeatType.VIP, 150.00m);
-
-        // Act
-        var result = seat.IsHoldExpired();
-
-        // Assert
-        result.Should().BeFalse();
+        isExpired.Should().BeFalse();
     }
 
     #endregion
